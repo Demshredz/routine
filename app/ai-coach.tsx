@@ -7,7 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoutineStore } from '@/store/useRoutineStore';
 import { MotiView, AnimatePresence } from 'moti';
 import { Sparkles, X, ChevronRight, Send, Loader2 } from 'lucide-react-native';
+import * as Icons from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { generateRoutineProtocol, GeneratedProtocol } from '@/utils/openai';
+import { scheduleDailyRoutineNotification } from '@/utils/notifications';
 
 export default function AiCoachScreen() {
   const router = useRouter();
@@ -16,37 +19,50 @@ export default function AiCoachScreen() {
   const theme = { bg: appTheme.background, card: appTheme.card, text: appTheme.text, tint: appTheme.tint };
   
   const addRoutine = useRoutineStore(s => s.addRoutine);
+  const currentRoutines = useRoutineStore(s => s.routines);
 
   const [prompt, setPrompt] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [result, setResult] = useState<{title: string, routines: {title: string, type: any, dosage?: string}[]} | null>(null);
+  const [result, setResult] = useState<GeneratedProtocol | null>(null);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsTyping(true);
     setResult(null);
 
-    // Mock AI Generation delay
-    setTimeout(() => {
-      setIsTyping(false);
+    const protocol = await generateRoutineProtocol(prompt, currentRoutines);
+    
+    setIsTyping(false);
+    
+    if (protocol) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setResult({
-        title: "Dein Anti-Stress Protokoll",
-        routines: [
-          { title: "Digital Detox (Kein Handy nach 21 Uhr)", type: "evening" },
-          { title: "Ashwagandha (Stress-Reduktion)", type: "supplement", dosage: "500mg" },
-          { title: "Box Breathing (4-4-4-4 Atemzug)", type: "morning" }
-        ]
-      });
+      setResult(protocol);
       setPrompt('');
-    }, 2500);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      alert('Der AI Coach ist aktuell nicht erreichbar. Bitte überprüfe deine Internetverbindung oder den API Key.');
+    }
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (result) {
-      result.routines.forEach(r => addRoutine(r));
+      // Loop over generated routines and schedule push notifications if there's a time
+      for (const r of result.routines) {
+        let notificationId;
+        if (r.time) {
+          const parts = r.time.split(':');
+          if (parts.length === 2) {
+             const h = parseInt(parts[0], 10);
+             const m = parseInt(parts[1], 10);
+             if (!isNaN(h) && !isNaN(m)) {
+               notificationId = await scheduleDailyRoutineNotification(r.title, "Es ist Zeit für deine Routine!", h, m);
+             }
+          }
+        }
+        addRoutine({ ...r, notificationId, recurrence: { type: 'daily' } });
+      }
     }
     router.replace('/');
   };
@@ -99,12 +115,19 @@ export default function AiCoachScreen() {
                </View>
 
                <View style={styles.routinePreview}>
-                 {result.routines.map((r, i) => (
-                   <MotiView key={i} from={{ opacity: 0, translateX: -10 }} animate={{ opacity: 1, translateX: 0 }} transition={{ delay: i * 150 }} style={[styles.previewItem, { backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9' }]}>
-                     <Text style={[styles.previewText, { color: theme.text }]}>{r.title}</Text>
-                     {r.type === 'supplement' && <Text style={{ color: theme.tint, fontSize: 11, fontWeight: '700' }}>{r.dosage}</Text>}
-                   </MotiView>
-                 ))}
+                 {result.routines.map((r, i) => {
+                   const IconComponent = r.icon && (Icons as any)[r.icon] ? (Icons as any)[r.icon] : null;
+                   return (
+                     <MotiView key={i} from={{ opacity: 0, translateX: -10 }} animate={{ opacity: 1, translateX: 0 }} transition={{ delay: i * 150 }} style={[styles.previewItem, { backgroundColor: isDark ? '#2C2C2E' : '#F1F5F9', flexDirection: 'row', alignItems: 'center' }]}>
+                       {IconComponent && <IconComponent size={20} color={r.color || theme.tint} style={{ marginRight: 12 }} />}
+                       <View style={{ flex: 1 }}>
+                         <Text style={[styles.previewText, { color: theme.text }]}>{r.title}</Text>
+                         {r.time && <Text style={{ color: theme.tint, fontSize: 12, marginTop: 4 }}>{r.time}</Text>}
+                       </View>
+                       {r.type === 'supplement' && <Text style={{ color: r.color || theme.tint, fontSize: 11, fontWeight: '700', marginLeft: 8 }}>{r.dosage}</Text>}
+                     </MotiView>
+                   );
+                 })}
                </View>
 
                <TouchableOpacity style={[styles.applyBtn, { backgroundColor: theme.tint }]} onPress={handleApply}>

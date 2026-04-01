@@ -24,6 +24,12 @@
 - **Betroffene Dateien:** `utils/notifications.ts`, `_layout.tsx`, `index.tsx`
 - **Abhängigkeiten:** `expo-notifications`, `expo-device`. Registrierungs-Logik im Boot-Prozess `_layout.tsx`.
 
+## 1e. AI Coach Generator (NEU Phase E)
+- **Status:** Fertig (OpenAI API)
+- **Zweck:** Dynamische Generierung von Routine-Protokollen durch Eingabe von User-Problemen (z.B. "Schlechter Schlaf"). Ruft über `gpt-4o-mini` valides JSON ab (inklusive Icons, Farben und Zeiten) und injiziert die Ergebnisse in die bestehende Timeline samt Notification-Schedule.
+- **Betroffene Dateien:** `ai-coach.tsx`, `utils/openai.ts`
+- **Abhängigkeiten:** Echter API Key in lokaler `.env` (EXPO_PUBLIC_OPENAI_API_KEY). Context (existierende Gewohnheiten) wird mitgesendet um Duplikate zu vermeiden.
+
 ## 2. Morgen / Abend / Supplement Tags
 - **Status:** Fertig
 - **Zweck:** Kategorisierung für einfache Übersicht (Tabs) und sortiertes Ausgeben je nach Tageszeit.

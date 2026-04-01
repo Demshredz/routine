@@ -34,11 +34,14 @@ Nodes:
 - `streak` / `lastCompletedDate`: Number/String für Gamification.
 - Config: `themeColor`, `isPro`, `trialStartDate`.
 
-## API- und Service-Struktur
-**Aktuell nicht existent.** Es gibt keine externe DB, keine Auth. Daten bleiben lokal.
+## 8. Push Notifications (`utils/notifications.ts`)
+Wir nutzen `expo-notifications`, um **lokale** Daily-Trigger zu simulieren. Füllt der User bei einer Routine eine `time` aus, wird ein lokaler Alarm gespeichert und das `notificationId` abgelegt, um es bei Löschung sauber stoppen zu können. Ein externes Server-Backend wird dafür nicht benötigt.
 
-## Build- und Runtime-Besonderheiten
-- Die App bootet sehr schnell wegen Zustand Persistenz. Ein `hasHydrated` Check in `_layout.tsx` verhindert Flicker beim Rendern während AsyncStorage lädt.
+## 9. AI Coach Engine (`utils/openai.ts`)
+Frontend-direkte Kommunikation mit der **OpenAI API** (`gpt-4o-mini`), geschützt hinter einem lokalen `EXPO_PUBLIC_OPENAI_API_KEY`.
+- **System Prompt:** Garantiert einen reinen JSON-Output, der exakt auf das `Routine` Typensystem der App abgestimmt ist.
+- **Kontext-Awareness:** Die bestehenden Gewohnheiten des Users aus der Zustandsebene (`useRoutineStore.ts`) werden bei jeder Abfrage injected, um Duplikate zu vermeiden.
+- **UX:** Resultierende JSON-Routinen-Protokolle werden in `ai-coach.tsx` visualisiert (inklusive dynamischer Icons und Farben) und können mit einem Klick alle als neue Routinen samt lokalen Push-Notifications in die Timeline integriert werden. Ein `hasHydrated` Check in `_layout.tsx` verhindert Flicker beim Rendern während AsyncStorage lädt.
 - `pruneData` im Store kappt Daten > 90 Tage ab, um den AsyncStorage Heap nicht endlos anwachsen zu lassen.
 
 ## Kritische Abhängigkeiten
