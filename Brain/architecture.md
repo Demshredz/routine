@@ -20,8 +20,8 @@
 
 ## Komponenten-Architektur
 Ausgeprägte Trennung zwischen Screens und Heavy-Duty Components.
-- **`RoutineCard.tsx`:** Hochoptimierte List-Komponente (`React.memo`). Nutzt `Swipeable` aus RN-Gesture-Handler für Deletion. Besitzt einen ausklappbaren (Moti) Audio-Player-Mock für Meditations-Flows.
-- **`ui/icon-symbol.tsx`:** Standard SF-Symbols/MaterialIcons Wrapper von Expo.
+- **`RoutineCard.tsx` & `TimelineCard.tsx`:** Hochoptimierte List-Komponenten (`React.memo`). Nutzen `Swipeable` aus RN-Gesture-Handler für Deletion und Completion (Right/Left Swipe). Besitzt einen ausklappbaren (Moti) Audio-Player-Mock.
+- **`TimelineView.tsx`:** Verarbeitet `hours` dynamisch und rechnet sie in `px` (HOUR_HEIGHT) um.
 - Zustandskomponenten in `Explore` wg. Skia Performance (`ProgressRing`, `HeatmapChart` sind via `React.memo` entkoppelt).
 
 ## State Management (`useRoutineStore.ts`)
@@ -47,7 +47,15 @@ Frontend-direkte Kommunikation mit der **OpenAI API** (`gpt-4o-mini`), geschütz
 - **System Prompt:** Garantiert einen reinen JSON-Output, der exakt auf das `Routine` Typensystem der App abgestimmt ist.
 - **Kontext-Awareness:** Die bestehenden Gewohnheiten des Users aus der Zustandsebene (`useRoutineStore.ts`) werden bei jeder Abfrage injected, um Duplikate zu vermeiden.
 - **UX:** Resultierende JSON-Routinen-Protokolle werden in `ai-coach.tsx` visualisiert (inklusive dynamischer Icons und Farben) und können mit einem Klick alle als neue Routinen samt lokalen Push-Notifications in die Timeline integriert werden. Ein `hasHydrated` Check in `_layout.tsx` verhindert Flicker beim Rendern während AsyncStorage lädt.
-- `pruneData` im Store kappt Daten > 90 Tage ab, um den AsyncStorage Heap nicht endlos anwachsen zu lassen.
+
+## 10. Insight Analytics (Phase F)
+Die UX der App verlässt sich auf On-The-Fly-Berechnung: Wir speichern keine statischen "Punkte" für Historie, sondern leiten KI-Korrelationen wie "Mood vs. Erledigungsrate" direkt im Render-Tree von `explore.tsx` über `useMemo` in Echtzeit aus den Rohdaten ab. Das hält das Datenbank-Schema (`completions`, `moods`) winzig und flexibel für jede künftige Analyse-Idee. `pruneData` im Store kappt Daten > 365 (früher 90) Tage ab, um den AsyncStorage Heap nicht endlos anwachsen zu lassen.
+
+## 11. Security Architektur & bekannte Corner Cases (Self-Audit)
+- **API Key Exposure:** Der OpenAI Token in `EXPO_PUBLIC_OPENAI_API_KEY` wird beim Build in die JS-Kompilierung eingebettet. Das ist in Dev "ok", aber ein klares Security-Risiko für den App Store Release.
+- **Background Fetch fehlend:** Lokale Notifications (`expo-notifications`) müssen bei einem Hard-Reboot des Phones via `expo-task-manager` neu registriert werden. Das fehlt aktuell.
+- **ScrollView Pan-Collision:** `react-native-draggable-flatlist` (DFL) kollidiert mit der `ScrollView` der Timeline, weswegen das manuelle Reordering aktuell bewusst auf den "List-View" (die reine DFL) beschränkt ist. 
+- **Timezone Safety:** Die Streak-Logik und Datums-Filter (`todayKey`) verlassen sich auf `date-fns` im Format `yyyy-MM-dd` basierend auf der lokalen Phone-Zeitzone. Bei langen Flügen über Zeitzonen kann dies aktuell zu Lücken im Streak führen.
 
 ## Kritische Abhängigkeiten
 - `@shopify/react-native-skia`: Native Module. Muss bei Expo über Prebuild oder Dev-Client kompiliert werden, bricht oft Web-Builds, wenn nicht speziell gehandhabt.
