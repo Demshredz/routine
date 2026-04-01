@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MotiView } from 'moti';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { Check, Circle } from 'lucide-react-native';
 import * as LucideIcons from 'lucide-react-native';
 import { RoutineType } from '@/store/useRoutineStore';
@@ -58,9 +59,26 @@ export const TimelineCard = React.memo(({
         : time
     : null;
 
+  const swipeableRef = React.useRef<Swipeable>(null);
+
+  const renderLeftActions = () => (
+    <View style={{ backgroundColor: routineColor, justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 24, borderRadius: 16, marginBottom: 8, flex: 1 }}>
+      <Check color="#FFF" size={28} />
+    </View>
+  );
+
   return (
-    <TouchableOpacity
-      style={[
+    <Swipeable 
+      ref={swipeableRef}
+      renderLeftActions={renderLeftActions}
+      onSwipeableLeftOpen={() => {
+        onToggle(id, isCompleted);
+        setTimeout(() => swipeableRef.current?.close(), 300);
+      }}
+      containerStyle={{ flex: 1 }}
+    >
+      <TouchableOpacity
+        style={[
         styles.card,
         { backgroundColor: theme.card },
         isCompleted && { opacity: 0.5 },
@@ -122,6 +140,7 @@ export const TimelineCard = React.memo(({
         </MotiView>
       </View>
     </TouchableOpacity>
+    </Swipeable>
   );
 }, areEqual);
 

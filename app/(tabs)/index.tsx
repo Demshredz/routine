@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView as RNS
 import { useTranslation } from 'react-i18next';
 import { format, getHours, differenceInDays } from 'date-fns';
 import { useRoutineStore, RoutineType, Routine } from '@/store/useRoutineStore';
-import { Check, Circle, Plus, Bell, Crown, Flame, LayoutList, Clock } from 'lucide-react-native';
+import { Check, Circle, Plus, Bell, Crown, Flame, LayoutList, Clock, Shield } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -19,6 +19,8 @@ import { RoutineCard } from '@/components/RoutineCard';
 import { TimelineView } from '@/components/TimelineView';
 import { IconPicker } from '@/components/IconPicker';
 import { ColorPicker, THEME_COLORS } from '@/components/ColorPicker';
+import { MonthlyCalendar } from '@/components/MonthlyCalendar';
+import { playPopSound } from '@/utils/audio';
 import { Repeat } from 'lucide-react-native';
 import { scheduleDailyRoutineNotification, cancelNotification } from '@/utils/notifications';
 
@@ -43,6 +45,10 @@ export default function HomeScreen() {
   const setMood = useRoutineStore((state) => state.setMood);
   const selectedDate = useRoutineStore((state) => state.selectedDate);
   const setSelectedDate = useRoutineStore((state) => state.setSelectedDate);
+  const level = useRoutineStore((state) => state.level);
+  const exp = useRoutineStore((state) => state.exp);
+  const showLevelUp = useRoutineStore((state) => state.showLevelUp);
+  const resetLevelUp = useRoutineStore((state) => state.resetLevelUp);
   
   const isPro = useRoutineStore((state) => state.isPro);
   const trialStartDate = useRoutineStore((state) => state.trialStartDate);
@@ -71,6 +77,9 @@ export default function HomeScreen() {
 
   const handleToggle = (id: string, isCompleted: boolean) => {
     Haptics.impactAsync(isCompleted ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
+    if (!isCompleted) {
+      playPopSound();
+    }
     toggleCompletion(id, selectedDate);
   };
 
@@ -212,6 +221,10 @@ export default function HomeScreen() {
               <Clock size={16} color={viewMode === 'timeline' ? '#FFF' : theme.text} />
             </TouchableOpacity>
           </View>
+          <View style={[styles.streakBadge, { backgroundColor: isDark ? '#333' : '#FEF3C7', paddingHorizontal: 8, paddingVertical: 4 }]}>
+            <Shield size={16} color={themeColor} fill={themeColor} />
+            <Text style={[styles.streakCount, { color: themeColor }]}>Lvl {level}</Text>
+          </View>
           <View style={styles.streakBadge}>
             <Flame size={20} color="#F59E0B" fill={streak > 0 ? "#F59E0B" : "transparent"} />
             <Text style={styles.streakCount}>{streak}</Text>
@@ -278,7 +291,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      {showConfetti && (
+      {showLevelUp && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999, justifyContent: 'center', alignItems: 'center' }]}>
+          <MotiView from={{ opacity: 0, scale: 0.5, translateY: 50 }} animate={{ opacity: 1, scale: 1, translateY: 0 }} transition={{ type: 'spring', damping: 12 }}>
+            <View style={{ backgroundColor: theme.card, padding: 30, borderRadius: 24, alignItems: 'center', width: width * 0.8 }}>
+              <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: themeColor, justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
+                <Shield size={40} color="#FFF" fill="#FFF" />
+              </View>
+              <Text style={{ color: theme.text, fontSize: 24, fontWeight: '800', marginBottom: 8 }}>LEVEL UP!</Text>
+              <Text style={{ color: theme.text, opacity: 0.7, fontSize: 16, textAlign: 'center', marginBottom: 24 }}>Du hast Level {level} erreicht. Bleib dran und sammle weiter EXP!</Text>
+              
+              <TouchableOpacity style={{ backgroundColor: themeColor, paddingHorizontal: 30, paddingVertical: 14, borderRadius: 100, width: '100%' }} onPress={() => { Haptics.selectionAsync(); resetLevelUp(); }}>
+                <Text style={{ color: '#FFF', fontWeight: '800', textAlign: 'center', fontSize: 16 }}>Weiter so!</Text>
+              </TouchableOpacity>
+            </View>
+          </MotiView>
+          <ConfettiCannon count={100} origin={{x: width / 2, y: -20}} fadeOut fallSpeed={2000} colors={[themeColor, '#F59E0B', '#10B981', '#E11D48']} />
+        </View>
+      )}
+
+      {showConfetti && !showLevelUp && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <ConfettiCannon count={200} origin={{x: width / 2, y: -20}} fadeOut fallSpeed={2500} onAnimationEnd={resetConfetti} />
         </View>

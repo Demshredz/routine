@@ -34,6 +34,13 @@ export const RoutineCard = React.memo(({
   
   const isSupplement = type === 'supplement';
   const isAudioRoute = title.toLowerCase().includes('atem') || title.toLowerCase().includes('meditation') || title.toLowerCase().includes('breath');
+  const swipeableRef = React.useRef<Swipeable>(null);
+
+  const renderLeftActions = () => (
+    <View style={[styles.deleteAction, { backgroundColor: themeColor, alignItems: 'flex-start', paddingLeft: 24, flex: 1 }]}>
+      <Check color="#FFF" size={28} />
+    </View>
+  );
 
   const renderRightActions = () => (
     <TouchableOpacity 
@@ -47,7 +54,16 @@ export const RoutineCard = React.memo(({
   );
 
   return (
-    <Swipeable renderRightActions={renderRightActions} containerStyle={{ marginBottom: 12, borderRadius: 16 }}>
+    <Swipeable 
+      ref={swipeableRef}
+      renderRightActions={renderRightActions} 
+      renderLeftActions={renderLeftActions}
+      onSwipeableLeftOpen={() => {
+        onToggle(id, isCompleted);
+        setTimeout(() => swipeableRef.current?.close(), 300);
+      }}
+      containerStyle={{ marginBottom: 12, borderRadius: 16 }}
+    >
       <TouchableOpacity 
         style={[ styles.routineItem, { backgroundColor: theme.card, marginBottom: 0 }, isCompleted && { opacity: 0.5 }, isSupplement && { borderLeftWidth: 4, borderLeftColor: themeColor } ]}
         onPress={() => onToggle(id, isCompleted)}

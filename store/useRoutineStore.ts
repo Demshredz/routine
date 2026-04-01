@@ -36,6 +36,12 @@ interface RoutineState {
   selectedDate: string;
   streak: number;
   lastCompletedDate: string | null;
+  
+  // Phase G: EXP & Level
+  exp: number;
+  level: number;
+  showLevelUp: boolean;
+
   // V7: Analytics & Data
   moods: Record<string, number>; // dateKey -> Skala 1-5 (oder 1-10)
 
@@ -62,6 +68,7 @@ interface RoutineState {
   reorderRoutines: (routineIds: string[]) => void;
   toggleCompletion: (id: string, dateKey: string) => void;
   resetConfetti: () => void;
+  resetLevelUp: () => void;
   checkStreak: () => void;
 }
 
@@ -78,6 +85,9 @@ export const useRoutineStore = create<RoutineState>()(
       completions: {},
       selectedDate: new Date().toISOString().split('T')[0],
       streak: 0,
+      exp: 0,
+      level: 1,
+      showLevelUp: false,
       lastCompletedDate: null,
       moods: {},
       showConfetti: false,
@@ -151,12 +161,25 @@ export const useRoutineStore = create<RoutineState>()(
         set((state) => {
           const currentCompletions = state.completions[dateKey] || [];
           const isCompleted = currentCompletions.includes(id);
-          
+          let newExp = state.exp || 0;
+          let newLevel = state.level || 1;
+          let showLevelUp = false;
+
           let newCompletions = [];
           if (isCompleted) {
             newCompletions = currentCompletions.filter((rId) => rId !== id);
+            newExp = Math.max(0, newExp - 10);
           } else {
             newCompletions = [...currentCompletions, id];
+            newExp += 10;
+          }
+
+          const calculatedLevel = Math.floor(newExp / 100) + 1;
+          if (calculatedLevel > newLevel && !isCompleted) {
+            newLevel = calculatedLevel;
+            showLevelUp = true;
+          } else if (calculatedLevel < newLevel && isCompleted) {
+            newLevel = calculatedLevel;
           }
 
           const newState = {
@@ -164,20 +187,23 @@ export const useRoutineStore = create<RoutineState>()(
               ...state.completions,
               [dateKey]: newCompletions,
             },
+            exp: newExp,
+            level: newLevel,
           };
 
           // Confetti Logic: Check if all routines are completed today
           const totalRoutines = state.routines.length;
           if (totalRoutines > 0 && newCompletions.length === totalRoutines && !isCompleted) {
-            return { ...newState, showConfetti: true };
+            return { ...newState, showConfetti: true, showLevelUp };
           }
 
-          return newState;
+          return showLevelUp ? { ...newState, showLevelUp } : newState;
         });
         get().checkStreak();
       },
 
       resetConfetti: () => set({ showConfetti: false }),
+      resetLevelUp: () => set({ showLevelUp: false }),
 
       checkStreak: () => {
         const { completions } = get();

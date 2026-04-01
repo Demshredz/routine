@@ -11,6 +11,7 @@ import { useRoutineStore } from '@/store/useRoutineStore';
 import { View, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { registerForPushNotificationsAsync } from '@/utils/notifications';
+import { initAudio } from '@/utils/audio';
 import '../i18n';
 
 export const unstable_settings = {
@@ -23,6 +24,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     registerForPushNotificationsAsync().catch(err => console.log('Push Registration Errr:', err));
+    initAudio();
   }, []);
 
   if (!hasHydrated) {

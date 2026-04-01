@@ -30,6 +30,11 @@
 - **Betroffene Dateien:** `ai-coach.tsx`, `utils/openai.ts`
 - **Abhängigkeiten:** Echter API Key in lokaler `.env` (EXPO_PUBLIC_OPENAI_API_KEY). Context (existierende Gewohnheiten) wird mitgesendet um Duplikate zu vermeiden.
 
+## 1e. Gamification, Leveling & Analytics (Phase F, G, H)
+- **Status:** Fertig
+- **Zweck:** Maximaler Dopamin-Erhalt durch RPG-Elemente und UX Polish. Jede erledigte Routine bringt `+10 EXP`. Bei Erreichen eines neuen Levels friert der Screen ein und triggert eine Level-Up Animation. Abhaken passiert via "Apple Native" Right-Swipe mit belohnendem Pop-Sound (`expo-av`). 
+- **Analytics:** Der "Statistiken"-Tab korreliert jetzt die Abends abgefragte Stimmung (1-5) mit der Erledigungsrate und zeigt dem User an: *"An Tagen mit >80% Rate, bist du im Schnitt bei 4.2 / 5 Punkten"*.
+
 ## 2. Morgen / Abend / Supplement Tags
 - **Status:** Fertig
 - **Zweck:** Kategorisierung für einfache Übersicht (Tabs) und sortiertes Ausgeben je nach Tageszeit.

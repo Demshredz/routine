@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 import { useSharedValue, withTiming, Easing, withRepeat, withSequence } from 'react-native-reanimated';
 import { format, subDays } from 'date-fns';
-import { Sprout, TreePine, TreeDeciduous, HeartPulse, Smartphone, Droplet } from 'lucide-react-native';
+import { Sprout, TreePine, TreeDeciduous, HeartPulse, Smartphone, Droplet, Zap, TrendingUp } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import * as Haptics from 'expo-haptics';
 
@@ -98,6 +98,28 @@ export default function ExploreScreen() {
     return weeks;
   }, []);
 
+  const moods = useRoutineStore((s) => s.moods);
+  const { highCompletionMood, lowCompletionMood, hasData } = useMemo(() => {
+    let highMoodSum = 0; let highDays = 0;
+    let lowMoodSum = 0; let lowDays = 0;
+    
+    Object.keys(completions).forEach(day => {
+       const completedCount = completions[day].length;
+       const ratio = totalRoutines > 0 ? completedCount / totalRoutines : 0;
+       const mood = moods[day];
+       if (mood) {
+          if (ratio >= 0.8) { highMoodSum += mood; highDays++; } 
+          else { lowMoodSum += mood; lowDays++; }
+       }
+    });
+    
+    return {
+      highCompletionMood: highDays > 0 ? (highMoodSum / highDays).toFixed(1) : null,
+      lowCompletionMood: lowDays > 0 ? (lowMoodSum / lowDays).toFixed(1) : null,
+      hasData: highDays > 0 || lowDays > 0
+    };
+  }, [completions, moods, totalRoutines]);
+
   const renderGardenState = () => {
     if (streak < 3) return <Sprout size={64} color="#10B981" />;
     if (streak < 14) return <TreePine size={64} color="#059669" />;
@@ -178,6 +200,23 @@ export default function ExploreScreen() {
             heatmapWeeks={heatmapWeeks} 
           />
         </View>
+
+        {/* AI Insight Correlation */}
+        {hasData && (
+          <View style={{ marginTop: 24, marginHorizontal: 20 }}>
+            <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 0 }]}>KI Analyse: Mood vs. Habits</Text>
+            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} style={{ backgroundColor: theme.card, padding: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: `${theme.tint}15`, justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
+                <Zap color={theme.tint} size={24} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: theme.text, fontSize: 14, lineHeight: 20 }}>
+                  An Tagen, an denen du &gt;80% deiner Routinen erledigst, ist dein durchschnittliches Energielevel <Text style={{ fontWeight: '800', color: theme.tint }}>{highCompletionMood || '-'} / 5</Text>. Inkonsistente Tage liegen bei {lowCompletionMood || '-'}.
+                </Text>
+              </View>
+            </MotiView>
+          </View>
+        )}
 
         {/* Breakdown Analysis (Phase 16) */}
         <View style={styles.breakdownSection}>

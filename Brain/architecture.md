@@ -34,7 +34,12 @@ Nodes:
 - `streak` / `lastCompletedDate`: Number/String für Gamification.
 - Config: `themeColor`, `isPro`, `trialStartDate`.
 
-## 8. Push Notifications (`utils/notifications.ts`)
+## 8. Gamification & Progression (Phase G & H)
+- **EXP & Levels:** Der `useRoutineStore` trackt `exp` und `level`. Pro Erledigung 10 EXP. Level skaliert mit `Math.floor(exp / 100) + 1`. 
+- **Sound Design:** `expo-av` puffert einen hochwertigen Pop-Sound global in `_layout.tsx` und triggert ihn bei jeder Gewohnheits-Erledigung, was das haptische Feedback massiv verstärkt.
+- **Swipe-Gestures:** RoutineCards und TimelineCards nutzen `Swipeable` (`react-native-gesture-handler`) für Apple-Native "Swipe-to-Complete" Interaktionen.
+
+## 9. Push Notifications (`utils/notifications.ts`)
 Wir nutzen `expo-notifications`, um **lokale** Daily-Trigger zu simulieren. Füllt der User bei einer Routine eine `time` aus, wird ein lokaler Alarm gespeichert und das `notificationId` abgelegt, um es bei Löschung sauber stoppen zu können. Ein externes Server-Backend wird dafür nicht benötigt.
 
 ## 9. AI Coach Engine (`utils/openai.ts`)
