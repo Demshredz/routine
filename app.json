@@ -4,8 +4,8 @@
     "slug": "routine",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "routine",
+    "icon": "./assets/icon.png",
+    "scheme": "routineapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

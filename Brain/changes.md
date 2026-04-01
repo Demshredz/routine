@@ -1,0 +1,13 @@
+# Change History (Log)
+
+*Dieses Log wird nach JEDER relevanten Änderung im Projekt aktualisiert.*
+
+| Datum | Änderung | Grund | Betroffene Dateien | Seiteneffekte / ToDos |
+| :--- | :--- | :--- | :--- | :--- |
+| **2026-04-01** | Push Notifications & Drag & Drop (Phase D) | Echte Sperrbildschirm-Reminder und manuelle Listenerstellung stärken den Produktivitäts-Loop | `utils/notifications.ts`, `_layout.tsx`, `index.tsx`, `useRoutineStore.ts` | `expo-notifications` und `react-native-draggable-flatlist` installiert. `index.tsx` auf `DraggableFlatList` refactored. Routine Model in Store wurde um `notificationId` ergänzt, sodass Erinnerungen bei Löschung der Routine ebenfalls gecanceled werden. |
+| **2026-04-01** | Interactive Calendar (Phase C) | Navigation von vergangenen und zukünftigen Tagen ermöglicht | `useRoutineStore.ts`, `calendar.tsx`, `MonthlyCalendar.tsx`, `index.tsx`, `_layout.tsx` | Community Tab gelöscht. Store um `selectedDate` erweitert. Home Tab liest jetzt `selectedDate` statt fixem "Heute". |
+| **2026-04-01** | Premium Routine Creator (Phase B) | Erweiterung der Routine-Konfiguration um Icons, Farben und Wiederholungen | `IconPicker.tsx`, `ColorPicker.tsx`, `index.tsx` | UI für Icon Grid und Farb-Auswahl integriert. Routine Model in Store wurde entsprechend bespielt. |
+| **2026-03-31** | Timeline View (Phase A) implementiert | Structured-Killer Feature: Visueller Tagesablauf mit Uhrzeiten, Now-Indicator, Accent Bars, Icons | `useRoutineStore.ts`, `TimelineView.tsx`, `TimelineCard.tsx`, `NowIndicator.tsx`, `index.tsx` | Store Version erhöhen (`routine-storage-v8`), Routine Interface erweitert (time, endTime, duration, icon, color, recurrence). View Toggle (List/Timeline) auf Home. |
+| **2026-03-31** | Android Testing & UX Phase 1 (Data-Fix & Theme-Refactoring) | Verhinderung von UX/Data-Glitches auf Android | `store/useRoutineStore.ts`, `hooks/use-app-theme.ts`, `app/(tabs)/*` | `pruneData` auf 365 Tage verlängert. Zeitzonen Streak-Fix integriert. Theme-Config konsolidiert. Android Bottom-Tab Style integriert. |
+| **2026-03-31** | Etablierung strenger "Brain-First" Architekten-Regeln. | Sicherstellung von technischer Produktqualität & 15-Min-Onboarding. | - | Zukünftiger Workflow: Analyse -> Brain Check -> Code Edit -> Brain Sync. |
+| **2026-03-31** | Initiales Brain Setup. | Projektübergabe für Agentic Coding. | Alle `/Brain` Dateien | Projekt analysiert. Status Quo dokumentiert. |
